@@ -10,10 +10,10 @@ WSB during the GameStop squeeze had a notoriously low signal-to-noise ratio. Tak
 
 | Label | Name | Definition |
 |-------|------|------------|
-| `S` | **Signal** | The post advances an original, reasoned position about a security/market/strategy, supported by evidence or analysis (data, options/short math, a comparison, a mechanism, a worked thesis) — something a reader could argue *with*. |
-| `N` | **Noise** | The post advances no supported analytical claim: a question, a rally cry / hype, a celebration, a meta/news post, or a PSA. |
+| `signal` | **Signal** | The post advances an original, reasoned position about a security/market/strategy, supported by evidence or analysis (data, options/short math, a comparison, a mechanism, a worked thesis) — something a reader could argue *with*. |
+| `noise` | **Noise** | The post advances no supported analytical claim: a question, a rally cry / hype, a celebration, a meta/news post, or a PSA. |
 
-Full definitions, example posts, and the S/N edge-case rules are in **[planning.md](planning.md)**.
+Full definitions, example posts, and the signal/noise edge-case rules are in **[planning.md](planning.md)**.
 
 ## Dataset
 
@@ -52,7 +52,7 @@ ai201-project3-takemeter/
 ├── README.md                 # this file
 ├── wsb_to_label.csv          # labeled working dataset
 ├── reddit_wsb.csv            # raw source (gitignored — get from Kaggle)
-├── edge_cases.md             # running log of S/N boundary calls (created during annotation)
+├── edge_cases.md             # running log of signal/noise boundary calls (created during annotation)
 └── outputs/                  # downloaded from Colab
     ├── evaluation_results.json
     └── confusion_matrix.png

@@ -30,14 +30,14 @@ It is also a community where this classifier would be *useful*: WSB's signal-to-
 
 This is a **binary** scheme (2 labels). I considered a 3-way split (Signal / Hype / Admin) but collapsed it: in practice the boundary that matters for a "is this worth reading" tool is reasoned-analysis vs. not, and a binary scheme keeps annotation consistent and the minority class large enough to learn.
 
-### Label `S` — **Signal**
+### Label `signal` — **Signal**
 > A post is **Signal** if it presents an original, reasoned position about a security, market, or strategy — i.e., it advances a specific claim and supports it with evidence or analysis (data, options/short math, a comparison, a mechanism, or a worked thesis), such that a reader could agree or disagree with the *argument* rather than just the vibe.
 
 Example posts:
 1. **"GME DD: Analysis of options expiry on 2/26 and potential for gamma and short squeezes"** (`id=lspbb5`) — opens with a TL;DR, computes ~$306m / 7m shares in-the-money under a stated price assumption, and reasons about gamma exposure. A textbook reasoned take.
 2. **"Prisoner's Dilemma — 💎🖐️ $GME 🚀"** (`id=l9cnx6`) — despite the emoji title, the body lays out a game-theoretic argument for why holders' incentives interact, i.e., a structured thesis you can argue with.
 
-### Label `N` — **Noise**
+### Label `noise` — **Noise**
 > A post is **Noise** if it does *not* advance a supported analytical claim: it is a question, a rally cry / hype, a celebration or social shout-out, a meta/news/media post, or a PSA. The post may be useful or popular, but it contains no original analysis a reader could evaluate as an argument.
 
 Example posts:
@@ -48,31 +48,31 @@ Example posts:
 
 ## 3. Hard Edge Cases
 
-The genuinely ambiguous posts all sit on the same **S/N boundary**: they wear the *costume* of analysis (DD framing, a "thesis," a confident prediction, a TL;DR) without the *substance* of it. Below are three real posts from `wsb_to_label.csv` that I genuinely struggled with, the tension in each, and the call I made. These are the cases that set the rules I now apply to the rest of the annotation.
+The genuinely ambiguous posts all sit on the same **signal/noise boundary**: they wear the *costume* of analysis (DD framing, a "thesis," a confident prediction, a TL;DR) without the *substance* of it. Below are three real posts from `wsb_to_label.csv` that I genuinely struggled with, the tension in each, and the call I made. These are the cases that set the rules I now apply to the rest of the annotation.
 
 ### Documented hard cases
 
-**Case 1 — `id=nc6qi3` · score 16488 · decided `N`**
+**Case 1 — `id=nc6qi3` · score 16488 · decided `noise`**
 *"Let's revive the buried WSB culture! GME to THOUSANDS… The TA Gods have spoken to me in sleep… I handcrafted this masterpiece TA: applying the anatomy of VW and TSLA to current GME."*
 - **Why it's hard:** the title explicitly claims a "GME thesis" and a TA comparison to two real historical squeezes (VW, TSLA) — that *sounds* like Signal. And it's the highest-scored post in the set.
 - **The tension:** the actual reasoning lives in a **linked chart image**; the post *body* is morale/hype ("Sup, honorable apecitizens!", a bet to shave his beard).
-- **Decision → N.** **Rule: label by the text of the post itself, not by what it links to.** If the argument is in an external image/link and the body is a rally cry, it's Noise. (A classifier reading only the text would have nothing analytical to learn from here — which is the right call for a text model.)
+- **Decision → noise.** **Rule: label by the text of the post itself, not by what it links to.** If the argument is in an external image/link and the body is a rally cry, it's Noise. (A classifier reading only the text would have nothing analytical to learn from here — which is the right call for a text model.)
 
-**Case 2 — `id=nwsnib` · score 20 · decided `N`**
+**Case 2 — `id=nwsnib` · score 20 · decided `noise`**
 *"Hard to swallow pill: Robinhood is going to skyrocket at IPO. Hedge funds know Retail HATES Robinhood and wants to short it at IPO; this is their chance to squeeze the retail shorts…"*
 - **Why it's hard:** this is the closest call of the three. It *does* offer a mechanism (a causal story about hedge-fund incentives) and a falsifiable prediction — more than pure hype.
 - **The tension:** but the mechanism is an **unfalsifiable narrative about intent** with zero evidence, data, or numbers — a plausible story, not analysis a reader can check.
-- **Decision → N.** **Rule: a mechanism is not enough; Signal requires verifiable support (data, math, sources), not just a confident causal story.** Confidence and a narrative ≠ analysis.
+- **Decision → noise.** **Rule: a mechanism is not enough; Signal requires verifiable support (data, math, sources), not just a confident causal story.** Confidence and a narrative ≠ analysis.
 
-**Case 3 — `id=l7z0u9` · score 1792 · decided `N`**
+**Case 3 — `id=l7z0u9` · score 1792 · decided `noise`**
 *"The GME shorts' endgame. INFORMATION PURPOSES ONLY… I'm rephrasing so it's pure information/education… TL;DR: DIAMOND HAND 💎🙌."*
 - **Why it's hard:** full DD costume — "endgame," "educational purposes," a TL;DR, a high score — and it's explicitly framed as information, not hype.
 - **The tension:** but it openly says it's **rephrasing someone else's post**, and once you strip the framing the actual takeaway is the rally cry "DIAMOND HAND" — hold-the-line morale, not original analysis.
-- **Decision → N.** **Rule: restated/secondhand content and DD *framing* don't make a post Signal; if the original claim+support is absent and the real message is "hold," it's Noise.**
+- **Decision → noise.** **Rule: restated/secondhand content and DD *framing* don't make a post Signal; if the original claim+support is absent and the real message is "hold," it's Noise.**
 
 ### Tie-breaker and logging
 
-When a post is still genuinely 50/50 after the rules above, I apply one tie-breaker: **"Could a reader disagree with the *argument*, or only with the *mood*?"** An argument to disagree with → `S`; only a mood → `N`. I keep a running [`edge_cases.md`](edge_cases.md) log of every post I deliberate on for more than ~15 seconds (post id, the call, the deciding rule) so the boundary stays consistent across all 200+ examples and the rules can be refined from real cases rather than guesses.
+When a post is still genuinely 50/50 after the rules above, I apply one tie-breaker: **"Could a reader disagree with the *argument*, or only with the *mood*?"** An argument to disagree with → `signal`; only a mood → `noise`. I keep a running [`edge_cases.md`](edge_cases.md) log of every post I deliberate on for more than ~15 seconds (post id, the call, the deciding rule) so the boundary stays consistent across all 200+ examples and the rules can be refined from real cases rather than guesses.
 
 ---
 
@@ -96,7 +96,7 @@ When a post is still genuinely 50/50 after the rules above, I apply one tie-brea
 
 Metrics I will report, and why:
 
-- **Per-class precision, recall, and F1 — reported for the `S` (Signal) class specifically.** This is the heart of the evaluation, because the tool's job is to surface Signal:
+- **Per-class precision, recall, and F1 — reported for the `signal` class specifically.** This is the heart of the evaluation, because the tool's job is to surface Signal:
   - **Recall (S)** = of all real Signal posts, how many did we catch? Low recall = the meter misses the good takes (the main failure I want to avoid).
   - **Precision (S)** = of posts we flagged as Signal, how many really were? Low precision = the meter cries wolf and the reader stops trusting it.
 - **Macro-F1** (average of S-F1 and N-F1) as the single headline number, because it weights the minority class equally instead of letting the majority dominate.
@@ -131,7 +131,7 @@ I want criteria specific enough that, at the end, I can mechanically check pass/
 This is an annotation-and-evaluation project, not an implementation project — there's little code to generate. AI tools help in three specific places:
 
 ### 7a. Label stress-testing (before annotating 200)
-Before committing to 200+ annotations, I will give an LLM (Claude) my §2 label definitions and §3 edge-case description and ask it to **generate 8–10 posts that deliberately sit on the S/N boundary** (e.g., confident-but-unsupported calls, hype that name-drops a thesis, restated-news-as-analysis). If I can't classify its outputs cleanly with my current rules, that's evidence my definitions are too loose — I will **tighten the definitions and the §3 tie-breaker rules now, before annotating**, and note what changed. (This step runs first precisely so it can fix the labels cheaply.)
+Before committing to 200+ annotations, I will give an LLM (Claude) my §2 label definitions and §3 edge-case description and ask it to **generate 8–10 posts that deliberately sit on the signal/noise boundary** (e.g., confident-but-unsupported calls, hype that name-drops a thesis, restated-news-as-analysis). If I can't classify its outputs cleanly with my current rules, that's evidence my definitions are too loose — I will **tighten the definitions and the §3 tie-breaker rules now, before annotating**, and note what changed. (This step runs first precisely so it can fix the labels cheaply.)
 
 ### 7b. Annotation assistance
 I **will** use an LLM to **pre-label a batch** before reviewing each one myself, to speed up annotation — but every pre-label is reviewed and corrected by me; the LLM never has the final say. Tracking for disclosure:
