@@ -48,15 +48,31 @@ Example posts:
 
 ## 3. Hard Edge Cases
 
-The genuinely ambiguous posts sit on the **S/N boundary** in three recurring ways:
+The genuinely ambiguous posts all sit on the same **S/N boundary**: they wear the *costume* of analysis (DD framing, a "thesis," a confident prediction, a TL;DR) without the *substance* of it. Below are three real posts from `wsb_to_label.csv` that I genuinely struggled with, the tension in each, and the call I made. These are the cases that set the rules I now apply to the rest of the annotation.
 
-1. **Thesis-flavored hype.** A rally post that *links to or gestures at* analysis but whose body is mostly cheerleading. Real example: **"Let's revive the buried WSB culture! GME to THOUSANDS…"** (`id=nc6qi3`, score 16488) embeds a VW/TSLA comparison chart but reads as a hype/morale post. → **Rule: label by the body of the post itself, not by what it links to.** If the reasoning lives in an external image/link and the post text is hype, it is **N**.
+### Documented hard cases
 
-2. **Confident prediction with no support.** A post that makes a strong directional call in an analytical *register* but offers no evidence or mechanism. Real example: **"Hard to swallow pill: Robinhood is going to skyrocket at IPO."** (`id=nwsnib`) — reads serious, but is assertion, not argument. → **Rule: a claim without supporting reasoning is N.** Signal requires the *support*, not just the confidence.
+**Case 1 — `id=nc6qi3` · score 16488 · decided `N`**
+*"Let's revive the buried WSB culture! GME to THOUSANDS… The TA Gods have spoken to me in sleep… I handcrafted this masterpiece TA: applying the anatomy of VW and TSLA to current GME."*
+- **Why it's hard:** the title explicitly claims a "GME thesis" and a TA comparison to two real historical squeezes (VW, TSLA) — that *sounds* like Signal. And it's the highest-scored post in the set.
+- **The tension:** the actual reasoning lives in a **linked chart image**; the post *body* is morale/hype ("Sup, honorable apecitizens!", a bet to shave his beard).
+- **Decision → N.** **Rule: label by the text of the post itself, not by what it links to.** If the argument is in an external image/link and the body is a rally cry, it's Noise. (A classifier reading only the text would have nothing analytical to learn from here — which is the right call for a text model.)
 
-3. **Authoritative-sounding meta.** Posts like **"The GME shorts' endgame. INFORMATION PURPOSES ONLY."** (`id=l7z0u9`) that adopt DD framing but are summary/narration rather than original analysis. → **Rule: restating known events ≠ analysis; if there's no original claim+support, it's N.**
+**Case 2 — `id=nwsnib` · score 20 · decided `N`**
+*"Hard to swallow pill: Robinhood is going to skyrocket at IPO. Hedge funds know Retail HATES Robinhood and wants to short it at IPO; this is their chance to squeeze the retail shorts…"*
+- **Why it's hard:** this is the closest call of the three. It *does* offer a mechanism (a causal story about hedge-fund incentives) and a falsifiable prediction — more than pure hype.
+- **The tension:** but the mechanism is an **unfalsifiable narrative about intent** with zero evidence, data, or numbers — a plausible story, not analysis a reader can check.
+- **Decision → N.** **Rule: a mechanism is not enough; Signal requires verifiable support (data, math, sources), not just a confident causal story.** Confidence and a narrative ≠ analysis.
 
-**Handling during annotation:** when a post is genuinely 50/50, I apply the tie-breaker **"Could a reader *disagree with the argument*, or only with the *mood*?"** If there's an argument to disagree with → S; if only a mood → N. I will keep a running `edge_cases.md` log of every post I had to think about for more than ~15 seconds, with the post id, the call I made, and the deciding rule — so the boundary stays consistent across the full 200+ and so the rules above can be refined from real cases rather than guesses.
+**Case 3 — `id=l7z0u9` · score 1792 · decided `N`**
+*"The GME shorts' endgame. INFORMATION PURPOSES ONLY… I'm rephrasing so it's pure information/education… TL;DR: DIAMOND HAND 💎🙌."*
+- **Why it's hard:** full DD costume — "endgame," "educational purposes," a TL;DR, a high score — and it's explicitly framed as information, not hype.
+- **The tension:** but it openly says it's **rephrasing someone else's post**, and once you strip the framing the actual takeaway is the rally cry "DIAMOND HAND" — hold-the-line morale, not original analysis.
+- **Decision → N.** **Rule: restated/secondhand content and DD *framing* don't make a post Signal; if the original claim+support is absent and the real message is "hold," it's Noise.**
+
+### Tie-breaker and logging
+
+When a post is still genuinely 50/50 after the rules above, I apply one tie-breaker: **"Could a reader disagree with the *argument*, or only with the *mood*?"** An argument to disagree with → `S`; only a mood → `N`. I keep a running [`edge_cases.md`](edge_cases.md) log of every post I deliberate on for more than ~15 seconds (post id, the call, the deciding rule) so the boundary stays consistent across all 200+ examples and the rules can be refined from real cases rather than guesses.
 
 ---
 
