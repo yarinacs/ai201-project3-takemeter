@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# OS
+.DS_Store
+
+# Secrets
+.env
+.env.local
+
+# Large raw source data (download from Kaggle — see README)
+reddit_wsb.csv
+
+# Colab/Jupyter scratch
+.ipynb_checkpoints/
