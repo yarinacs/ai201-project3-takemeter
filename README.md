@@ -53,6 +53,19 @@ The fine-tuned confusion matrix (7 errors: 3 missed Signal, 4 false alarms):
 
 ![Fine-tuned confusion matrix](outputs/confusion_matrix.png)
 
+### Error Analysis (fine-tuned model, all 7 errors reviewed by hand — planning.md §7c)
+
+The 7 misclassifications fall into two clean patterns:
+
+- **False alarms (4) — "costume of analysis."** The model flags financial vocabulary, tickers, numbers, and the word "DD" as Signal even when there is no original argument: a short-interest **data list**, an **earnings-data compilation** (its most *confident* error, 0.92), a name-dropping vaccine pitch, and a meta-rant *about* DD culture. It learned the surface features of analysis, not the §2 "supported original claim" test.
+- **Missed Signal (3) — buried, tentative, or external.** All low-confidence (0.50–0.66): analysis phrased conversationally ("someone mentioned… Investopedia says…"), a real DD whose calculation sat *below* a chatty preamble and past the 256-token truncation window, and a post that puts its argument in an **external video** ("watch and decide").
+
+The errors are symmetric and almost all low-confidence — the model is uncertain exactly where the §3 edge cases live, not wildly wrong.
+
+**Label-quality finding (honest).** Hand-verification showed at least one "error" — the external-video post — should be **Noise** under our own §3 rule (*judge the post's own text, not what it links to*); it was mislabeled Signal in a not-fully-careful annotation pass. So the dataset carries some label noise and the model's true accuracy is **at least** the reported 0.79. We deliberately did **not** edit the held-out test labels to reflect this (that would tamper with the test set); we report it instead. A §3-driven consistency relabel over the *full* dataset, applied blind to predictions, is the correct fix — listed as future work.
+
+**Actionable next steps:** (1) more training examples teaching "data dump / external link ≠ Signal"; (2) feed `title + body` and widen the truncation window so buried DD isn't cut off; (3) the consistency relabel above.
+
 ## AI Usage Disclosure
 
 AI tools (Claude) were used in these ways:

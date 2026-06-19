@@ -12,6 +12,17 @@ Running log of posts that took more than ~15 seconds to label. Each entry record
 When still 50/50 after the rules above: **"Could a reader disagree with the *argument*, or only with the *mood*?"**
 Argument to disagree with → `signal`. Only a mood → `noise`.
 
+## Patterns surfaced during error analysis (planning §7c)
+
+Reviewing the fine-tuned model's 7 test errors exposed boundary cases worth codifying:
+
+| pattern | example | call | rule |
+|---|---|---|---|
+| **Data dump / list** | short-interest table (GME 41%, SKT 40%…); earnings-move compilation ($FB/$AMZN/…) | **noise** | Reposting numbers/tables with no original argument is noise, however "quantitative" it looks. |
+| **Argument lives in an external video/link** | "watch this video and decide… for experienced traders" | **noise** | Reaffirms Case 1 — judge the post's own text; an external-media pointer is not in-text analysis. (This post was originally mislabeled `signal` — a label-noise example found via §7c.) |
+| **Meta-rant *about* analysis** | "this sub is full of stupid DD now…" | **noise** | Mentioning "DD"/analysis vocabulary ≠ doing analysis. |
+| **Tentative transcription** | "someone mentioned a special dividend… Investopedia says…" | borderline → lean **noise** | Restating external info + asking is closer to a question than an original supported claim. |
+
 ---
 
 _Add new rows below as annotation continues._

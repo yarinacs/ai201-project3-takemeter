@@ -20,3 +20,6 @@ signal_candidates_to_label.csv
 
 # Colab/Jupyter scratch
 .ipynb_checkpoints/
+
+# Colab notebook lives in Colab, not the repo (per project brief)
+*.ipynb
