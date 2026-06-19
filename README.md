@@ -106,12 +106,10 @@ Each row is a real test post run through the fine-tuned model, with its predicte
 | 1 | "Historical Post Earnings Moves MEGA Compilation — $FB, $AMZN, $AAPL, $AMD…" | `signal` | 0.92 | ❌ (true: noise) |
 | 2 | "What the fuck happened? …people post stupid DD that is…" | `signal` | 0.70 | ❌ (true: noise) |
 | 3 | "I post a DD yesterday… So I paste that calculation again here…" | `noise` | 0.66 | ❌ (true: signal) |
-| 4 | _correct Signal example — pending one model run (see chat snippet)_ | `signal` | _–_ | ✅ |
-| 5 | _correct Noise example — pending one model run (see chat snippet)_ | `noise` | _–_ | ✅ |
+| 4 | "Take this with a grain of salt… **TL/DR: Funds are going to fear**…" | `signal` | 0.87 | ✅ (true: signal) |
+| 5 | "I've seen a few people saying to buy RYCEY… **Is this our next target?**" | `noise` | 0.92 | ✅ (true: noise) |
 
-**Why a correct prediction is reasonable** (to finalize with row 4/5): _e.g._, a GME options-expiry DD that opens with a numbered TL;DR and computes in-the-money share counts is correctly called `signal` with high confidence — it carries exactly the §2 markers (a specific claim plus supporting math) and none of the data-dump/hype confounders, so both the surface features and the substance agree.
-
-> The three incorrect rows above are pulled from the model's actual error output; the two correct rows will be filled from a short inference snippet (the README is otherwise complete).
+**Why these correct predictions are reasonable.** Row 4 is correctly `signal`: despite the "not financial advice" hedging, it opens with a **TL;DR and advances an original thesis** (a mechanism for why funds will act a certain way) — exactly the §2 markers of a supported claim, so surface and substance agree. Row 5 is correctly `noise` with high confidence: it is a **bare question** ("Is this our next target?") with no claim a reader could argue against — the textbook Noise shape.
 
 ## Reflection: what I intended vs. what the model captured
 
