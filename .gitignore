@@ -15,5 +15,8 @@ venv/
 # Large raw source data (download from Kaggle — see README)
 reddit_wsb.csv
 
+# Scratch: targeted candidate pool for labeling (merged into wsb_to_label.csv)
+signal_candidates_to_label.csv
+
 # Colab/Jupyter scratch
 .ipynb_checkpoints/

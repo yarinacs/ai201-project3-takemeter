@@ -1,0 +1,64 @@
+{
+  "test_set": {
+    "n": 35,
+    "label_counts": {
+      "noise": 22,
+      "signal": 13
+    }
+  },
+  "majority_baseline_note": "always-predict-noise \u2248 macro-F1 0.41",
+  "finetuned_distilbert": {
+    "signal": {
+      "precision": 0.7142857142857143,
+      "recall": 0.7692307692307693,
+      "f1-score": 0.7407407407407407,
+      "support": 13.0
+    },
+    "noise": {
+      "precision": 0.8571428571428571,
+      "recall": 0.8181818181818182,
+      "f1-score": 0.8372093023255814,
+      "support": 22.0
+    },
+    "accuracy": 0.8,
+    "macro avg": {
+      "precision": 0.7857142857142857,
+      "recall": 0.7937062937062938,
+      "f1-score": 0.788975021533161,
+      "support": 35.0
+    },
+    "weighted avg": {
+      "precision": 0.8040816326530613,
+      "recall": 0.8,
+      "f1-score": 0.8013781223083549,
+      "support": 35.0
+    }
+  },
+  "baseline_groq_zeroshot": {
+    "signal": {
+      "precision": 0.6666666666666666,
+      "recall": 0.7692307692307693,
+      "f1-score": 0.7142857142857143,
+      "support": 13.0
+    },
+    "noise": {
+      "precision": 0.85,
+      "recall": 0.7727272727272727,
+      "f1-score": 0.8095238095238095,
+      "support": 22.0
+    },
+    "accuracy": 0.7714285714285715,
+    "macro avg": {
+      "precision": 0.7583333333333333,
+      "recall": 0.770979020979021,
+      "f1-score": 0.7619047619047619,
+      "support": 35.0
+    },
+    "weighted avg": {
+      "precision": 0.7819047619047619,
+      "recall": 0.7714285714285715,
+      "f1-score": 0.7741496598639456,
+      "support": 35.0
+    }
+  }
+}
