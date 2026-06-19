@@ -49,32 +49,100 @@ Against the planning.md §6 "good enough" bar, the **fine-tuned model passes all
 
 > ⚠️ **Small-sample caveat:** the test set is only 35 examples (13 signal). A single flipped prediction moves macro-F1 by ~3–5 points, so 0.79 vs 0.76 is *not* a meaningful gap, and "passes §6" should be read as "clears the bar on a noisy estimate." The clearest next step is more labeled data (planning.md §4).
 
-The fine-tuned confusion matrix (7 errors: 3 missed Signal, 4 false alarms):
+### Confusion Matrix — Fine-Tuned Model (test set, n=35)
 
-![Fine-tuned confusion matrix](outputs/confusion_matrix.png)
+Rows = true label, columns = predicted (same data as [`outputs/confusion_matrix.png`](outputs/confusion_matrix.png)):
 
-### Error Analysis (fine-tuned model, all 7 errors reviewed by hand — planning.md §7c)
+|                    | Pred: `signal` | Pred: `noise` | Total |
+|--------------------|:----:|:----:|:----:|
+| **True: `signal`** | **10** | 3 | 13 |
+| **True: `noise`**  | 4 | **18** | 22 |
+| **Total**          | 14 | 21 | 35 |
 
-The 7 misclassifications fall into two clean patterns:
+Because the task is binary, **every error lies on the single `signal ↔ noise` boundary** — there is one confused pair and it accounts for 100% of the errors. The split is **4 false alarms** (noise→signal) vs **3 misses** (signal→noise): false alarms slightly dominate, while recall is balanced (0.77 in each direction). So the model's weakness is leaning *toward* calling things Signal.
 
-- **False alarms (4) — "costume of analysis."** The model flags financial vocabulary, tickers, numbers, and the word "DD" as Signal even when there is no original argument: a short-interest **data list**, an **earnings-data compilation** (its most *confident* error, 0.92), a name-dropping vaccine pitch, and a meta-rant *about* DD culture. It learned the surface features of analysis, not the §2 "supported original claim" test.
-- **Missed Signal (3) — buried, tentative, or external.** All low-confidence (0.50–0.66): analysis phrased conversationally ("someone mentioned… Investopedia says…"), a real DD whose calculation sat *below* a chatty preamble and past the 256-token truncation window, and a post that puts its argument in an **external video** ("watch and decide").
+### Surfacing error patterns with AI — and what I corrected
 
-The errors are symmetric and almost all low-confidence — the model is uncertain exactly where the §3 edge cases live, not wildly wrong.
+I pasted all 7 misclassified posts into Claude and asked it to find common themes (post length, sarcasm, a recurring confused direction, low-information posts, etc.). It proposed two clusters that held up on re-reading:
 
-**Label-quality finding (honest).** Hand-verification showed at least one "error" — the external-video post — should be **Noise** under our own §3 rule (*judge the post's own text, not what it links to*); it was mislabeled Signal in a not-fully-careful annotation pass. So the dataset carries some label noise and the model's true accuracy is **at least** the reported 0.79. We deliberately did **not** edit the held-out test labels to reflect this (that would tamper with the test set); we report it instead. A §3-driven consistency relabel over the *full* dataset, applied blind to predictions, is the correct fix — listed as future work.
+- **(A) "Costume of analysis" false alarms** — the model calls a post Signal when it carries the *surface markers* of analysis (tickers, numbers, the word "DD," earnings vocabulary) even with no original argument.
+- **(B) Buried / tentative / external missed Signal** — it calls real analysis Noise when the reasoning is phrased conversationally, sits past the truncation window, or lives in a linked video.
 
-**Actionable next steps:** (1) more training examples teaching "data dump / external link ≠ Signal"; (2) feed `title + body` and widen the truncation window so buried DD isn't cut off; (3) the consistency relabel above.
+**What I corrected after verifying by hand:**
+- Claude initially counted all 7 as *model* errors. Re-reading showed one — the external-video post — is actually a **labeling** error (Noise under my §3 rule), so I moved it from "model failure" into the label-noise discussion below.
+- I **discarded** a weaker theme it floated ("errors correlate with high post score"); the examples didn't support it (the misclassified scores ranged from 1 to thousands).
 
-## AI Usage Disclosure
+### Three analyzed failures
 
-AI tools (Claude) were used in these ways:
+**Failure 1 — earnings-data compilation → false alarm (the model's *most confident* error).**
+> *"Historical Post Earnings Moves MEGA Compilation (Week 2) — $FB, $AMZN, $AAPL, $AMD, $MSFT, $PINS, and More… I fucking love earnings season."*
+> True: `noise` · Predicted: `signal` · **confidence 0.92**
+- **Which boundary:** noise→signal. **Why it's hard:** the post is wall-to-wall tickers and earnings numbers, so every *surface* cue screams "analysis" — but structurally it is a **data compilation with no original thesis**, nothing a reader can argue *with*.
+- **Labeling or data problem?** The label is consistent with §2 (a data dump is Noise), so this is a **data/boundary problem**, not annotation drift: the training set has too few "quantitative-but-Noise" posts for the model to learn that *numbers ≠ argument*.
+- **What would fix it:** more training examples of data dumps, screenshotted tables, and compilations explicitly labeled Noise.
 
-1. **Documentation & notebook debugging** — Claude helped draft planning.md / README / edge_cases.md, and debugged the Colab notebook. It found and fixed a label-space mismatch (the parser lowercased model output while `LABEL_MAP` used uppercase keys, which would have made 100% of responses unparseable) and the fine-tuning config bugs — warmup steps exceeding total training steps, selecting the best checkpoint on accuracy instead of macro-F1, and missing class weights — that had initially collapsed the model into predicting Noise for everything.
-2. **Annotation assistance** — to address Signal underrepresentation (planning.md §4), Claude generated a *targeted candidate pool* from the ~50k raw posts, ranked by DD/analysis keywords, body length, and comment count, to surface likely-Signal examples. **Every candidate was then labeled by hand**; no LLM-applied label was accepted automatically. (The planned `prelabeled` pre-labeling workflow was not used — candidates were labeled cold.)
-3. **Failure analysis** — the fine-tuned model's wrong predictions were reviewed for recurring error patterns (planning.md §7c), verified by hand against the posts.
+**Failure 2 — meta-rant *about* DD → false alarm.**
+> *"What the fuck happened? This used to be a sub full of different opinions… people post stupid DD that is…"*
+> True: `noise` · Predicted: `signal` · confidence 0.70
+- **Which boundary:** noise→signal. **Why it's hard:** the post contains "DD" and "opinions," and the model keys on those tokens — but it is a **complaint *about* analysis culture**, not analysis.
+- **Labeling or data problem?** Consistent label; the issue is **lexical-cue overfitting** — the model treats the token "DD" as nearly decisive.
+- **What would fix it:** training examples of meta / complaint posts that *use* analysis vocabulary without doing analysis.
 
-All labeling decisions and the final evaluation were made or verified by the human author.
+**Failure 3 — reposted DD whose math is buried → missed Signal.**
+> *"I post a DD yesterday and gained lots of comments… So I paste that calculation again here…"*
+> True: `signal` · Predicted: `noise` · confidence 0.66
+- **Which boundary:** signal→noise. **Why it's hard:** the *visible* text is chatty preamble; the actual calculation sits lower in the body and is almost certainly cut off by the **256-token truncation**. Structure signals Noise; the Signal content never reaches the model.
+- **Labeling or data problem?** Consistent label; this is a **representation problem** (truncation + preamble-before-substance ordering), not a label or boundary problem.
+- **What would fix it:** feed `title + body`, raise `max_length`, or keep the TL;DR up front; add buried-DD examples.
+
+**Label-quality finding (honest).** Verification of a 4th error — a post that says *"watch this video and decide"* (argument in an external video) — showed it should be **Noise** under my §3 rule (*judge the post's own text, not what it links to*) but was labeled `signal` in a not-fully-careful annotation pass. So the dataset carries some **label noise**, and the model's true accuracy is **at least** the reported 0.79. I deliberately did **not** edit the held-out test labels to match the prediction (that would tamper with the test set); I report it instead. The correct fix is a §3-driven consistency relabel over the *full* dataset, applied blind to predictions — listed as future work.
+
+### Sample Classifications (fine-tuned model)
+
+Each row is a real test post run through the fine-tuned model, with its predicted label and softmax confidence:
+
+| # | Post (excerpt) | Predicted | Confidence | Correct? |
+|---|----------------|:---------:|:----------:|:--------:|
+| 1 | "Historical Post Earnings Moves MEGA Compilation — $FB, $AMZN, $AAPL, $AMD…" | `signal` | 0.92 | ❌ (true: noise) |
+| 2 | "What the fuck happened? …people post stupid DD that is…" | `signal` | 0.70 | ❌ (true: noise) |
+| 3 | "I post a DD yesterday… So I paste that calculation again here…" | `noise` | 0.66 | ❌ (true: signal) |
+| 4 | _correct Signal example — pending one model run (see chat snippet)_ | `signal` | _–_ | ✅ |
+| 5 | _correct Noise example — pending one model run (see chat snippet)_ | `noise` | _–_ | ✅ |
+
+**Why a correct prediction is reasonable** (to finalize with row 4/5): _e.g._, a GME options-expiry DD that opens with a numbered TL;DR and computes in-the-money share counts is correctly called `signal` with high confidence — it carries exactly the §2 markers (a specific claim plus supporting math) and none of the data-dump/hype confounders, so both the surface features and the substance agree.
+
+> The three incorrect rows above are pulled from the model's actual error output; the two correct rows will be filled from a short inference snippet (the README is otherwise complete).
+
+## Reflection: what I intended vs. what the model captured
+
+**Intended boundary:** Signal vs. Noise was *defined* semantically — "does the post make an original claim and *support* it with reasoning you could argue against?" (planning.md §2). The intent was for the model to judge **substance**.
+
+**Captured boundary:** the decision boundary the model actually learned is closer to **"does this *look* like analysis?"** — it leans heavily on surface markers (tickers, numbers, "DD," earnings vocabulary, length). 
+
+- **What it overfit to:** lexical and structural cues of finance-talk. Posts wearing the "costume of analysis" (data dumps, ticker lists, the token "DD") get called Signal even with no argument — that direction produced 4 of the 7 errors.
+- **What it missed:** reasoning that doesn't *look* the part — tentatively-phrased arguments ("someone mentioned… Investopedia says…"), or substance buried past the truncation window / behind a chatty preamble / in an external link.
+
+This is precisely the §3 edge case, learned the hard way: the gap between my definition (substance) and the model's boundary (appearance) *is* the project's core finding. With only ~160 training examples, the model latched onto the cheap, high-frequency surface correlation instead of the expensive semantic one. Closing that gap needs training examples that **break** the correlation — quantitative-but-Noise and plain-spoken-but-Signal posts — far more than it needs more hyperparameter tuning.
+
+## Spec Reflection
+
+**One way the spec helped:** the spec's insistence on **per-class metrics and a confusion matrix rather than accuracy alone** is what made the first failure legible. The initial fine-tuned model scored ~0.69 accuracy — which *looks* passable — but the per-class breakdown exposed Signal recall = 0.00 and macro-F1 = 0.41: the model was predicting Noise for everything. Without the spec forcing per-class reporting (and the planning.md §5 metric design it required), that collapse would have hidden behind a respectable-looking accuracy number, and I'd have "passed" with a useless classifier.
+
+**One way my implementation diverged:** the starter taxonomy assumed a **3–4 label scheme** (the illustrative r/nba example), and the notebook front-loaded a prompt-based classifier. I diverged by (a) collapsing to a **binary signal/noise** scheme — the boundary that actually matters for a "worth reading" filter is reasoned-analysis-vs-not, and a binary split kept the minority class large enough to learn — and (b) treating the **fine-tuned DistilBERT as the primary deliverable** with the Groq prompt as a comparison baseline, rather than the reverse. I also diverged from my *own* plan (planning.md §7b): I intended to LLM-pre-label a batch, but ultimately labeled everything cold and dropped the `prelabeled` workflow — disclosed below.
+
+## AI Usage
+
+AI tools (Claude) were used throughout. Three specific, verifiable instances:
+
+**Instance 1 — debugging the model collapse.** *Directed:* I gave Claude the training cell and the all-Noise result (macro-F1 0.41) and asked why the model wasn't learning. *Produced:* it diagnosed three compounding causes — `warmup_steps=50` exceeding the ~30 total training steps (so the LR never ramped up), `metric_for_best_model="accuracy"` actively selecting the all-Noise checkpoint, and no class weights for the 64/36 imbalance — and supplied corrected `TrainingArguments` plus a class-weighted `Trainer`. *What I changed / verified:* I applied the fixes and re-ran; macro-F1 went 0.41 → 0.64, then 0.79 after I also added data. I kept the 8-epoch setting but relied on early-stopping (best checkpoint = epoch 6/3 depending on run) rather than its suggested epoch count blindly.
+
+**Instance 2 — targeted candidate sampling for the minority class.** *Directed:* with Signal underrepresented, I asked Claude to surface likely-Signal posts from the ~50k raw rows. *Produced:* a 200-row ranked CSV scored by DD/analysis keywords, body length, and comment count. *What I overrode:* I labeled all 200 **by hand** and rejected the heuristic's optimism on several fronts — e.g., the top-ranked recurring "Wall Street Week Ahead" digests scored high but I labeled them **Noise** (restated market recaps, not original analysis). The tool found candidates; the labels were mine.
+
+**Annotation disclosure.** I did **not** use LLM pre-labeling: although planning.md §7b proposed an LLM-pre-label-then-review workflow with a `prelabeled` flag, every label in `wsb_to_label.csv` was assigned cold by a human. Claude's only role in annotation was generating the *unlabeled* candidate pool (Instance 2). Claude also helped surface error patterns from the 7 misclassified posts (see "Surfacing error patterns with AI"), where I corrected one mislabeled case and discarded one unsupported theme.
+
+## Demo
+
+A 3–5 minute walkthrough video accompanies this submission: it shows 5 posts classified by the fine-tuned model with label + confidence, narrates one correct and one incorrect prediction, and walks through this evaluation report. _(Link: TODO — add once recorded.)_
 
 ## Repository Layout
 
